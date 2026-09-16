@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>منظم الطالب</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #0f172a;
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        header h1 {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        header p {
+            color: #94a3b8;
+        }
+
+        .top-box {
+            background: #1e293b;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+
+        .input-box {
+            display: flex;
+            gap: 10px;
+        }
+
+        .input-box input {
+            flex: 1;
+            padding: 13px;
+            border: none;
+            border-radius: 10px;
+            outline: none;
+            font-size: 16px;
+        }
+
+        button {
+            border: none;
+            cursor: pointer;
+            border-radius: 10px;
+            padding: 12px 18px;
+            font-size: 15px;
+        }
+
+        .add-btn {
+            background: #2563eb;
+            color: white;
+        }
+
+        .add-btn:hover {
+            background: #1d4ed8;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+            color: #cbd5e1;
+        }
+
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .task {
+            background: #1e293b;
+            padding: 15px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .task-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .task-info input {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .task-name {
+            font-size: 17px;
+        }
+
+        .completed {
+            text-decoration: line-through;
+            color: #64748b;
+        }
+
+        .delete-btn {
+            background: #dc2626;
+            color: white;
+            padding: 8px 12px;
+        }
+
+        .delete-btn:hover {
+            background: #b91c1c;
+        }
+
+        .empty {
+            text-align: center;
+            color: #64748b;
+            padding: 30px;
+        }
+
+        .dark-btn {
+            display: block;
+            margin: 20px auto 0;
+            background: #334155;
+            color: white;
+        }
+
+        @media (max-width: 600px) {
+            .input-box {
+                flex-direction: column;
+            }
+
+            .add-btn {
+                width: 100%;
+            }
+
+            .task {
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <header>
+        <h1>📚 منظم الطالب</h1>
+        <p>نظّم مهامك وواجباتك بسهولة</p>
+    </header>
+
+    <div class="top-box">
+
+        <div class="input-box">
+            <input
+                type="text"
+                id="taskInput"
+                placeholder="اكتب الواجب أو المهمة..."
+            >
+
+            <button class="add-btn" onclick="addTask()">
+                إضافة +
+            </button>
+        </div>
+
+        <div class="stats">
+            <span>إجمالي المهام: <b id="total">0</b></span>
+            <span>المكتملة: <b id="completed">0</b></span>
+        </div>
+
+    </div>
+
+    <div id="taskList" class="task-list"></div>
+
+    <button class="dark-btn" onclick="toggleTheme()">
+        🌙 تغيير الوضع
+    </button>
+
+</div>
+
+<script>
+
+    // تحميل المهام المحفوظة
+    let tasks = JSON.parse(localStorage.getItem("studentTasks")) || [];
+
+    // إضافة مهمة
+    function addTask() {
+
+        const input = document.getElementById("taskInput");
+
+        const taskText = input.value.trim();
+
+        if (taskText === "") {
+            alert("اكتب المهمة أولاً");
+            return;
+        }
+
+        const task = {
+            id: Date.now(),
+            name: taskText,
+            completed: false
+        };
+
+        tasks.push(task);
+
+        saveTasks();
+
+        input.value = "";
+
+        displayTasks();
+    }
+
+
+    // عرض المهام
+    function displayTasks() {
+
+        const taskList = document.getElementById("taskList");
+
+        taskList.innerHTML = "";
+
+        if (tasks.length === 0) {
+
+            taskList.innerHTML =
+                '<div class="empty">لا توجد مهام حالياً 📭</div>';
+
+        } else {
+
+            tasks.forEach(function(task) {
+
+                const div = document.createElement("div");
+
+                div.className = "task";
+
+                div.innerHTML = `
+                    <div class="task-info">
+
+                        <input
+                            type="checkbox"
+                            ${task.completed ? "checked" : ""}
+                            onchange="completeTask(${task.id})"
+                        >
+
+                        <span class="task-name ${
+                            task.completed ? "completed" : ""
+                        }">
+                            ${task.name}
+                        </span>
+
+                    </div>
+
+                    <button
+                        class="delete-btn"
+                        onclick="deleteTask(${task.id})"
+                    >
+                        حذف
+                    </button>
+                `;
+
+                taskList.appendChild(div);
+
+            });
+        }
+
+        updateStats();
+    }
+
+
+    // إكمال المهمة
+    function completeTask(id) {
+
+        const task = tasks.find(function(task) {
+            return task.id === id;
+        });
+
+        if (task) {
+            task.completed = !task.completed;
+        }
+
+        saveTasks();
+
+        displayTasks();
+    }
+
+
+    // حذف المهمة
+    function deleteTask(id) {
+
+        tasks = tasks.filter(function(task) {
+            return task.id !== id;
+        });
+
+        saveTasks();
+
+        displayTasks();
+    }
+
+
+    // تحديث الإحصائيات
+    function updateStats() {
+
+        const total = tasks.length;
+
+        const completed = tasks.filter(function(task) {
+            return task.completed;
+        }).length;
+
+        document.getElementById("total").textContent = total;
+
+        document.getElementById("completed").textContent = completed;
+    }
+
+
+    // حفظ المهام
+    function saveTasks() {
+
+        localStorage.setItem(
+            "studentTasks",
+            JSON.stringify(tasks)
+        );
+    }
+
+
+    // تغيير الوضع
+    function toggleTheme() {
+
+        const body = document.body;
+
+        if (body.style.background === "white") {
+
+            body.style.background = "#0f172a";
+            body.style.color = "white";
+
+        } else {
+
+            body.style.background = "white";
+            body.style.color = "#111827";
+        }
+    }
+
+
+    // تشغيل الموقع عند فتح الصفحة
+    displayTasks();
+
+</script>
+
+</body>
+</html>
